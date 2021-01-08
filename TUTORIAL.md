@@ -96,7 +96,7 @@ Let's take a look at the files and directories that were created for us (config 
 
 ```terminal
 ├── api
-│   ├── prisma
+│   ├── db
 │   │   ├── schema.prisma
 │   │   └── seeds.js
 │   └── src
@@ -134,7 +134,7 @@ At the top level we have two directories, `api` and `web`. Redwood separates the
 
 Within `api` there are two directories:
 
-- `prisma` contains the plumbing for the database:
+- `db` contains the plumbing for the database:
 
   - `schema.prisma` contains the database schema (tables and columns)
   - `seeds.js` is used to populate your database with any data that needs to exist for your app to run at all (maybe an admin user or site configuration).
@@ -172,7 +172,7 @@ Let's give our users something to look at besides the Redwood welcome page. We'l
 
     yarn redwood generate page home /
 
-The command above does three things:
+The command above does four things:
 
 - Creates `web/src/pages/HomePage/HomePage.js`. Redwood takes the name you specified as the first argument, capitalizes it, and appends "Page" to construct your new page component.
 - Creates a test file to go along with this new page component at `web/src/pages/HomePage/HomePage.test.js` with a single, passing test. You _do_ write tests for your components, _don't you??_
@@ -469,10 +469,10 @@ We need to decide what data we'll need for a blog post. We'll expand on this at 
 
 We use [Prisma Client JS](https://github.com/prisma/prisma-client-js) to talk to the database. Prisma has another library called [Migrate](https://github.com/prisma/migrate) that lets us update the database's schema in a predictable way and snapshot each of those changes. Each change is called a _migration_ and Migrate will create one when we make changes to our schema.
 
-First let's define the data structure for a post in the database. Open up `api/prisma/schema.prisma` and add the definition of our Post table (remove any "sample" models that are present in the file). Once you're done the entire schema file should look like:
+First let's define the data structure for a post in the database. Open up `api/db/schema.prisma` and add the definition of our Post table (remove any "sample" models that are present in the file). Once you're done the entire schema file should look like:
 
 ```plaintext{13-18}
-// api/prisma/schema.prisma
+// api/db/schema.prisma
 
 datasource DS {
   provider = "sqlite"
@@ -505,7 +505,7 @@ This says that we want a table called `Post` and it should have:
 >
 > `id String @id @default(cuid())`
 >
-> Integers also make for nicer URLs like https://redwoodblog.com/posts/123 instead of https://redwoodblog.com/posts/eebb026c-b661-42fe-93bf-f1a373421a13. 
+> Integers also make for nicer URLs like https://redwoodblog.com/posts/123 instead of https://redwoodblog.com/posts/eebb026c-b661-42fe-93bf-f1a373421a13.
 >
 > Take a look at the [official Prisma documentation](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#defining-an-id-field) for more on ID fields.
 
@@ -513,11 +513,11 @@ This says that we want a table called `Post` and it should have:
 
 That was simple. Now we'll want to snapshot this as a migration:
 
-    yarn redwood db save create posts
+    yarn redwood db save "create posts"
 
 You've named the migration "create posts", and this is for your own benefit—Redwood doesn't care about the migration's name, it's just a reference for future developers.
 
-After the command completes you'll see a new subdirectory created under `api/prisma/migrations` that has a timestamp and the name you gave the migration. It will contain a couple files inside (a snapshot of what the schema looked like at that point in time in `schema.prisma` and the directives that Prisma Migrate will use to make the change to the database in `steps.json`).
+After the command completes you'll see a new subdirectory created under `api/db/migrations` that has a timestamp and the name you gave the migration. It will contain a couple files inside (a snapshot of what the schema looked like at that point in time in `schema.prisma` and the directives that Prisma Migrate will use to make the change to the database in `steps.json`).
 
 We apply the migration with another command:
 
@@ -701,8 +701,8 @@ export const Success = ({ blogPosts }) => {
 >     yarn rw g cell blogPosts
 >     yarn rw g cell BlogPosts
 >
-> You will need _some_ kind of indication that you're using more than one word: either snake_case (`blog_posts`), kebab-case (`blog-posts`), camelCase (`blogPosts`) or PascalCase (`BlogPosts`). 
-> 
+> You will need _some_ kind of indication that you're using more than one word: either snake_case (`blog_posts`), kebab-case (`blog-posts`), camelCase (`blogPosts`) or PascalCase (`BlogPosts`).
+>
 > Calling `yarn redwood g cell blogposts` (without any indication that we're using two words) will generate a file at `web/src/components/BlogpostsCell/BlogpostsCell.js`.
 
 To get you off and running as quickly as possible the generator assumes you've got a root GraphQL query named the same thing as your cell and gives you the minimum query needed to get something out of the database. In this case the query is called `blogPosts`:
@@ -1638,7 +1638,7 @@ return (
 
 <img src="https://user-images.githubusercontent.com/300/80258907-39d8f880-8639-11ea-8816-03a11c69e8ac.png" />
 
-Oooo, what if the _label_ could change as well? It can, but we'll need Redwood's custom `<Label>` component for that. Note that the `for` attribute of `<label>` becomes the `name` prop on `<Label>`, just like with the other Redwood form components. And don't forget the import:
+Oooo, what if the _label_ could change as well? It can, but we'll need Redwood's custom `<Label>` component for that. Note that the `htmlFor` attribute of `<label>` becomes the `name` prop on `<Label>`, just like with the other Redwood form components. And don't forget the import:
 
 ```javascript{9,21-23,31-33,41-43}
 // web/src/pages/ContactPage/ContactPage.js
@@ -1761,7 +1761,7 @@ Finally, you know what would _really_ be nice? If the fields were validated as s
 
 Well, what do you think? Was it worth the hype? A couple of new components and you've got forms that handle validation and wrap up submitted values in a nice data object, all for free.
 
-> **Learn more about Redwood Forms** 
+> **Learn more about Redwood Forms**
 >
 > Redwood's forms are built on top of [React Hook Form](https://react-hook-form.com/) so there is even more functionality available than we've documented here. Visit the [Form docs](https://redwoodjs.com/docs/form) to learn more about all form functionalities.
 
@@ -1771,10 +1771,10 @@ Having a contact form is great, but only if you actually get the contact somehow
 
 ## Saving Data
 
-Let's add a new database table. Open up `api/prisma/schema.prisma` and add a Contact model after the Post model that's there now:
+Let's add a new database table. Open up `api/db/schema.prisma` and add a Contact model after the Post model that's there now:
 
 ```javascript
-// api/prisma/schema.prisma
+// api/db/schema.prisma
 
 model Contact {
   id        Int @id @default(autoincrement())
@@ -2457,7 +2457,7 @@ provider = ["sqlite", "postgresql"]
 
 > If you are deploying to Netlify and using Prisma version `< 2.11.0`, you will need to add `rhel-openssl-1.0.x` to your `binaryTargets`:
 > ```javascript
-> // api/prisma/schema.prisma
+> // api/db/schema.prisma
 >
 > generator client {
 >   provider      = "prisma-client-js"
@@ -2683,7 +2683,7 @@ Now try creating, editing or deleting a post from our admin pages. Nothing happe
 
 > **Services as Containers for Your Business Logic**
 >
-> Note that we're putting the authentication checks in the service and not checking in the GraphQL interface (in the SDL files). Redwood created the concept of **services** as containers for your business logic which can be used by other parts of your application besides the GraphQL API. 
+> Note that we're putting the authentication checks in the service and not checking in the GraphQL interface (in the SDL files). Redwood created the concept of **services** as containers for your business logic which can be used by other parts of your application besides the GraphQL API.
 >
 > By putting authentication checks here you can be sure that any other code that tries to create/update/delete a post will fall under the same authentication checks. In fact, Apollo (the GraphQL library Redwood uses) [agrees with us](https://www.apollographql.com/docs/apollo-server/security/authentication/#authorization-in-data-models)!
 
@@ -2771,6 +2771,8 @@ We need to let the widget know the URL of our site so it knows where to go to ge
 You need the protocol and domain, not the rest of the path. Paste that into the modal and click that **Set site's URL** button. The modal should reload and now show a real login box:
 
 ![Netlify identity widget login](https://user-images.githubusercontent.com/300/82388116-97205980-99ed-11ea-8fb4-13436ee8e746.png)
+
+#### Accepting Invites
 
 Before we can log in, remember that confirmation email from Netlify? Go find that and click the **Accept the invite** link. That will bring you to your site live in production, where nothing will happen. But if you look at the URL it will end in something like `#invite_token=6gFSXhugtHCXO5Whlc5V`. Copy that (including the `#`) and appened it to your localhost URL: http://localhost:8910/#invite_token=6gFSXhugtHCXO5Whlc5Vg Hit Enter, then go back into the URL and hit Enter again to get it to actually reload the page. Now the modal will show **Complete your signup** and give you the ability to set your password:
 
