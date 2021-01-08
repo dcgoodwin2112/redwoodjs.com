@@ -35,6 +35,10 @@
     h1, h2, h3, h4, h5, h6 {
       margin-left: -1.1rem;
     }
+
+    h4 {
+      margin-left: -0.9rem;
+    }
   }
 
   p {
@@ -80,6 +84,10 @@
 
   blockquote {
     @apply text-sm border border-red-300 bg-red-100 py-1 px-6 my-8 rounded-lg;
+  }
+
+  blockquote ul:last-child {
+    @apply mb-6;
   }
 
   img {
@@ -171,7 +179,12 @@
       @apply text-xs;
     }
   }
-
+  .code-dl {
+    @apply mt-8;
+    p {
+      @apply mt-1 mb-8;
+    }
+  }
 }
 
 #status-0 {
